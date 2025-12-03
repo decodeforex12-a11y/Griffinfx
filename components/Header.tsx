@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Menu, X } from 'lucide-react';
+import { Activity, Menu, X, LogOut, User as UserIcon } from 'lucide-react';
+import { User } from '../types';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  user: User | null;
+  onLogout: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +47,7 @@ const Header: React.FC = () => {
         </div>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex gap-8">
+        <nav className="hidden md:flex gap-8 items-center">
           {['Dashboard', 'Add Trade', 'Risk Calculator'].map((item) => (
             <button
               key={item}
@@ -50,6 +57,38 @@ const Header: React.FC = () => {
               {item}
             </button>
           ))}
+          
+          {/* User Profile */}
+          {user && (
+             <div className="relative ml-4">
+                <button 
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 focus:outline-none"
+                >
+                  <img 
+                    src={user.photoUrl} 
+                    alt={user.name} 
+                    className="w-9 h-9 rounded-full border-2 border-white shadow-sm hover:border-blue-200 transition-colors"
+                  />
+                  <span className="text-sm font-semibold text-slate-700">{user.name}</span>
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-3 border-b border-slate-50">
+                      <p className="text-sm font-bold text-slate-800">{user.name}</p>
+                      <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                    </div>
+                    <button 
+                      onClick={onLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <LogOut size={16} /> Sign Out
+                    </button>
+                  </div>
+                )}
+             </div>
+          )}
         </nav>
 
         {/* Mobile Menu Toggle */}
@@ -73,6 +112,23 @@ const Header: React.FC = () => {
               {item}
             </button>
           ))}
+          {user && (
+            <div className="pt-4 border-t border-slate-100 mt-2">
+               <div className="flex items-center gap-3 mb-4">
+                   <img src={user.photoUrl} alt="User" className="w-10 h-10 rounded-full" />
+                   <div>
+                     <p className="text-sm font-bold text-slate-900">{user.name}</p>
+                     <p className="text-xs text-slate-500">{user.email}</p>
+                   </div>
+               </div>
+               <button 
+                  onClick={onLogout}
+                  className="w-full text-center bg-red-50 text-red-600 py-2 rounded-lg text-sm font-bold"
+                >
+                  Sign Out
+                </button>
+            </div>
+          )}
         </div>
       )}
     </header>

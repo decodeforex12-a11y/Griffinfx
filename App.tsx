@@ -4,19 +4,54 @@ import Dashboard from './components/Dashboard';
 import TradeForm from './components/TradeForm';
 import RiskCalculator from './components/RiskCalculator';
 import TradeList from './components/TradeList';
-import { Trade } from './types';
-import { getTrades, saveTrade, editTrade, getInitialBalance, setInitialBalance } from './services/storageService';
+import Login from './components/Login';
+import { Trade, User } from './types';
+import { 
+  getTrades, 
+  saveTrade, 
+  editTrade, 
+  getInitialBalance, 
+  setInitialBalance, 
+  setCurrentUserId 
+} from './services/storageService';
 
 function App() {
+  const [user, setUser] = useState<User | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [initialBalance, setInitialBalanceState] = useState(10000);
   const [tradeToEdit, setTradeToEdit] = useState<Trade | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load data on mount
+  // Initialize Auth Check
   useEffect(() => {
+    const savedUser = sessionStorage.getItem('tradeflow_user');
+    if (savedUser) {
+      const parsedUser = JSON.parse(savedUser);
+      setUser(parsedUser);
+      setCurrentUserId(parsedUser.id);
+      loadUserData();
+    }
+    setIsLoading(false);
+  }, []);
+
+  const loadUserData = () => {
     setTrades(getTrades());
     setInitialBalanceState(getInitialBalance());
-  }, []);
+  };
+
+  const handleLogin = (newUser: User) => {
+    setUser(newUser);
+    sessionStorage.setItem('tradeflow_user', JSON.stringify(newUser));
+    setCurrentUserId(newUser.id);
+    loadUserData();
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('tradeflow_user');
+    setUser(null);
+    setTrades([]);
+    setCurrentUserId('guest');
+  };
 
   const handleSaveTrade = (trade: Trade) => {
     if (tradeToEdit) {
@@ -57,9 +92,17 @@ function App() {
     return acc + (trade.pnl || 0);
   }, initialBalance);
 
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>;
+  }
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen pb-12">
-      <Header />
+      <Header user={user} onLogout={handleLogout} />
       <main className="pt-20"> {/* Padding for fixed header */}
         
         <Dashboard 

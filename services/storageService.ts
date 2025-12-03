@@ -1,24 +1,33 @@
-import { Trade, AccountStats } from '../types';
+import { Trade } from '../types';
 
-const TRADES_KEY = 'tradeflow_trades';
-const BALANCE_KEY = 'tradeflow_balance';
+let currentUserId = 'guest';
+
+export const setCurrentUserId = (id: string) => {
+  currentUserId = id;
+};
+
+const getKeys = () => ({
+  trades: `tradeflow_trades_${currentUserId}`,
+  balance: `tradeflow_balance_${currentUserId}`
+});
 
 export const getTrades = (): Trade[] => {
-  const data = localStorage.getItem(TRADES_KEY);
+  const { trades } = getKeys();
+  const data = localStorage.getItem(trades);
   return data ? JSON.parse(data) : [];
 };
 
 export const saveTrade = (trade: Trade): Trade[] => {
   const currentTrades = getTrades();
   const updatedTrades = [trade, ...currentTrades];
-  localStorage.setItem(TRADES_KEY, JSON.stringify(updatedTrades));
+  localStorage.setItem(getKeys().trades, JSON.stringify(updatedTrades));
   return updatedTrades;
 };
 
 export const editTrade = (updatedTrade: Trade): Trade[] => {
   const trades = getTrades();
   const newTrades = trades.map(t => t.id === updatedTrade.id ? updatedTrade : t);
-  localStorage.setItem(TRADES_KEY, JSON.stringify(newTrades));
+  localStorage.setItem(getKeys().trades, JSON.stringify(newTrades));
   return newTrades;
 };
 
@@ -27,20 +36,22 @@ export const updateTradeStatus = (id: string, status: Trade['status'], pnl: numb
   const updatedTrades = trades.map(t => 
     t.id === id ? { ...t, status, pnl } : t
   );
-  localStorage.setItem(TRADES_KEY, JSON.stringify(updatedTrades));
+  localStorage.setItem(getKeys().trades, JSON.stringify(updatedTrades));
   return updatedTrades;
 };
 
 export const getInitialBalance = (): number => {
-  const bal = localStorage.getItem(BALANCE_KEY);
+  const { balance } = getKeys();
+  const bal = localStorage.getItem(balance);
   return bal ? parseFloat(bal) : 10000; // Default 10k
 };
 
 export const setInitialBalance = (amount: number) => {
-  localStorage.setItem(BALANCE_KEY, amount.toString());
+  localStorage.setItem(getKeys().balance, amount.toString());
 };
 
 export const clearAllData = () => {
-  localStorage.removeItem(TRADES_KEY);
-  localStorage.removeItem(BALANCE_KEY);
+  const { trades, balance } = getKeys();
+  localStorage.removeItem(trades);
+  localStorage.removeItem(balance);
 };

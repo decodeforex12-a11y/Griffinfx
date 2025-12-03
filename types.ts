@@ -10,10 +10,17 @@ export enum TradeStatus {
   BREAK_EVEN = 'Break Even'
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  photoUrl?: string;
+}
+
 export interface Trade {
   id: string;
   pair: string;
-  assetClass?: string; // Added field
+  assetClass?: string;
   direction: Direction;
   entryPrice: number;
   stopLoss: number;
